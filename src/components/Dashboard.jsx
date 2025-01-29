@@ -20,8 +20,8 @@ import SubmitForm from "./DetailForm";
 import IndividualCard from "./PersonCard";
 import { search } from "../utils/search";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { fetchMoreUsers } from "../apis/fetchMoreUsers";
-import { fetchInitialUsers } from "../apis/fetchInitialUsers";
+import { fetchMoreUsers } from "../services/paginationService";
+import { fetchInitialUsers } from "../services/initialLoad";
 
 import theme from "./Theme"; // Import theme
 const USERS_PER_PAGE = 8;
