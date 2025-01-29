@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Container, Paper, Typography, Grid, Card, Alert, Box, 
   CircularProgress, IconButton, AppBar, Toolbar, Tooltip,
-  Dialog, DialogActions, DialogContent, DialogContentText,
-  DialogTitle, Button, FormControl, InputLabel, Select,
+ FormControl, InputLabel, Select,
   MenuItem, Switch, FormControlLabel, Divider
 } from "@mui/material";
 import {
@@ -18,11 +17,11 @@ import * as XLSX from 'xlsx';
 import SearchBar from "./SearchBar";
 import SubmitForm from "./DetailForm";
 import IndividualCard from "./PersonCard";
-import { search } from "../utils/search";
+import { search } from "../utils/SearchHandler";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { fetchMoreUsers } from "../services/paginationService";
 import { fetchInitialUsers } from "../services/initialLoad";
-
+import DeleteDialog from "./DeleteDialog";
 import theme from "./Theme"; // Import theme
 const USERS_PER_PAGE = 8;
 const BACKEND_SERVER_BASE_ADDRESS = process.env.REACT_APP_BACKEND_BASEADDRESS;
@@ -43,6 +42,7 @@ const UserDashboard = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+  
   const [filters, setFilters] = useState({
     department: "",
     sortBy: "name",
@@ -533,38 +533,11 @@ const importFromExcel = (event) => {
           </Grid>
         </Container>
 
-        <Dialog
-          open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-          PaperProps={{
-            sx: { borderRadius: 3 }
-          }}
-        >
-          <DialogTitle>Confirm Delete</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Are you sure you want to delete this user? This action cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions sx={{ p: 2.5 }}>
-            <Button 
-              onClick={() => setDeleteDialogOpen(false)}
-              variant="outlined"
-              sx={{ borderRadius: 2 }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleDeleteConfirmed}
-              color="error"
-              variant="contained"
-              sx={{ borderRadius: 2 }}
-              autoFocus
-            >
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+         <DeleteDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        handleDeleteConfirmed={handleDeleteConfirmed}
+      />
       </Box>
     </ThemeProvider>
   );

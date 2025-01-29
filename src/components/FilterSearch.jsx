@@ -4,7 +4,7 @@ import {
   Select, MenuItem
 } from "@mui/material";
 import SearchBar from "./SearchBar";
-import { search } from "../utils/search";
+import { search } from "../utils/SearchHandler";
 
 const FilterSearch = ({ users, setUsers }) => {
   const [searchTerm, setSearchTerm] = useState("");
