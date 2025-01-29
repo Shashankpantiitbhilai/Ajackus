@@ -1,10 +1,10 @@
-Here's a comprehensive README.md for your project:
+# User Management Dashboard  [![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_Site-blue)](https://ajackus-seven.vercel.app/)
+## 🌐 Live Demo
 
-# User Management Dashboard
+Experience the application live at [https://ajackus-seven.vercel.app/](https://ajackus-seven.vercel.app/)
+## A modern, feature-rich user management dashboard built with React that allows viewing, adding, editing, and deleting user details with a mock backend API.
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_Site-blue)](https://ajackus-seven.vercel.app/)
-
-A modern, feature-rich user management dashboard built with React that allows viewing, adding, editing, and deleting user details with a mock backend API.
+![Demo](./assets/demo.gif)
 
 ## 🌟 Features
 
@@ -48,9 +48,9 @@ cd user-management-dashboard
 ```bash
 cp .env.example .env
 ```
-Update `REACT_APP_BACKEND_BASEURL` in `.env` with information in the .env.example file 
+Update `REACT_APP_BACKEND_BASEURL` in `.env` with information in the .env.example file
 
-1. **Install dependencies**
+3. **Install dependencies**
 ```bash
 npm install
 ```
@@ -69,7 +69,8 @@ docker compose up --build --remove-orphans
 ```
 
 ## 📁 Project Structure
-```Directory structure:
+```
+Directory structure:
 └── shashankpantiitbhilai-ajackus/
     ├── README.md
     ├── docker-compose.yml
@@ -106,7 +107,6 @@ docker compose up --build --remove-orphans
             ├── ColorUtils.js
             ├── SearchHandler.js
             └── nameUtils.js
-
 ```
 
 ## 🛠 Development Commands
@@ -151,14 +151,10 @@ docker compose up --build --remove-orphans
    - ✅ Infinite scrolling
    - ✅ User statistics
 
-## 🌐 Live Demo
 
-Experience the application live at [https://ajackus-seven.vercel.app/](https://ajackus-seven.vercel.app/)
 
 ## 📝 Notes
 
 - The application uses JSONPlaceholder for demonstration purposes
 - All CRUD operations are simulated
 - The app is optimized for both desktop and mobile views
-
-For more information or support, please create an issue in the repository.
