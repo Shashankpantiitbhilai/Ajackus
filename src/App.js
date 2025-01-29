@@ -1,10 +1,10 @@
 import "./App.css";
-import UserDashboard from "./Components/Dashboard";
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { useState, useMemo } from "react";
-import theme from "./Components/Theme";
-
+import theme from "./components/Theme";
+import UserDashboard from "./components/Dashboard";
 function App() {
   const [darkMode, setDarkMode] = useState(false);
   const currentTheme = useMemo(() => theme(darkMode), [darkMode]);
