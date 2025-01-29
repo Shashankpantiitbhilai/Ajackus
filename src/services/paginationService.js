@@ -13,7 +13,7 @@
  */
 
 
-const BACKEND_SERVER_BASE_ADDRESS = process.env.REACT_APP_BACKEND_BASEADDRESS;
+const BACKEND_SERVER_BASE_URL = process.env.REACT_APP_BACKEND_BASEURL;
 
 export const fetchMoreUsers = async (
   page,
@@ -24,7 +24,7 @@ export const fetchMoreUsers = async (
   USERS_PER_PAGE
 ) => {
   try {
-    const response = await fetch(BACKEND_SERVER_BASE_ADDRESS.concat("users"));
+    const response = await fetch(BACKEND_SERVER_BASE_URL.concat("users"));
     if (!response.ok) throw new Error("Failed to fetch more users");
     const data = await response.json();
 

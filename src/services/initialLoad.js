@@ -11,7 +11,7 @@
  * the value of USER_PER_PAGE.
  */
 
-const BACKEND_SERVER_BASE_ADDRESS = process.env.REACT_APP_BACKEND_BASEADDRESS;
+const BACKEND_SERVER_BASE_URL = process.env.REACT_APP_BACKEND_BASEURL;
 
 
 export const fetchInitialUsers = async (
@@ -23,7 +23,7 @@ export const fetchInitialUsers = async (
   setSeverity
 ) => {
   try {
-    const response = await fetch(BACKEND_SERVER_BASE_ADDRESS.concat("users"));
+    const response = await fetch(BACKEND_SERVER_BASE_URL.concat("users"));
     if (!response.ok) {
         setSeverity('error');
             throw new Error('Failed to fetch users');
