@@ -1,0 +1,5 @@
+.userlist-wrapper{
+    position: relative;
+    height: 56vh;
+    overflow-y: auto;
+}
