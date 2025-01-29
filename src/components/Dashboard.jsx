@@ -10,7 +10,9 @@ import {
   Refresh as RefreshIcon,
   FileDownload as FileDownloadIcon,
   FileUpload as FileUploadIcon,
-  DarkMode as DarkModeIcon
+  
+  DarkMode as DarkModeIcon,
+   Group as GroupIcon
 } from "@mui/icons-material";
 import InfiniteScroll from "react-infinite-scroll-component";
 import * as XLSX from 'xlsx';
@@ -24,8 +26,8 @@ import { fetchInitialUsers } from "../services/initialLoad";
 import DeleteDialog from "./DeleteDialog";
 import theme from "./Theme"; // Import theme
 const USERS_PER_PAGE = 8;
-const BACKEND_SERVER_BASE_ADDRESS = process.env.REACT_APP_BACKEND_BASEADDRESS;
-
+const BACKEND_SERVER_BASE_URL = process.env.REACT_APP_BACKEND_BASEURL;
+console.log("url",BACKEND_SERVER_BASE_URL)
 const UserDashboard = () => {
  
 
@@ -96,7 +98,7 @@ const importFromExcel = (event) => {
         console.log(userData);
 
         const response = await fetch(
-          BACKEND_SERVER_BASE_ADDRESS.concat("users"),
+          BACKEND_SERVER_BASE_URL.concat("users"),
           {
             method: "POST",
             body: JSON.stringify(userData),
@@ -221,7 +223,7 @@ const importFromExcel = (event) => {
         formData.name = formData.firstName + " " + formData.lastName;
         formData.company.name = formData.department;
         const response = await fetch(
-          BACKEND_SERVER_BASE_ADDRESS.concat(`users/${selectedUser.id}`),
+          BACKEND_SERVER_BASE_URL.concat(`users/${selectedUser.id}`),
           {
             method: "PUT",
             body: JSON.stringify(formData),
@@ -244,7 +246,7 @@ const importFromExcel = (event) => {
         formData.company.name = formData.department;
         setIsLoading(true);
         const response = await fetch(
-          BACKEND_SERVER_BASE_ADDRESS.concat("users"),
+          BACKEND_SERVER_BASE_URL.concat("users"),
           {
             method: "POST",
             body: JSON.stringify(formData),
@@ -283,7 +285,7 @@ const importFromExcel = (event) => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        BACKEND_SERVER_BASE_ADDRESS.concat(`users/${userId}`),
+        BACKEND_SERVER_BASE_URL.concat(`users/${userId}`),
         {
           method: "DELETE",
         }
@@ -410,6 +412,26 @@ const importFromExcel = (event) => {
             {/* Left Sidebar */}
             <Grid item xs={12} md={3}>
               <Paper elevation={0} sx={{ p: 3, borderRadius: 3, height: '100%' }}>
+                 <Box 
+                  sx={{ 
+                    mb: 3, 
+                    p: 2, 
+                    borderRadius: 2, 
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <GroupIcon />
+                  <Box>
+                    <Typography variant="subtitle2">Total Users</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                      {users.length}
+                    </Typography>
+                  </Box>
+                </Box>
                 <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
                   Add/Edit User
                 </Typography>
