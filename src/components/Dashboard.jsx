@@ -4,7 +4,7 @@ import {
   CircularProgress, IconButton, AppBar, Toolbar, Tooltip,
   Dialog, DialogActions, DialogContent, DialogContentText,
   DialogTitle, Button, FormControl, InputLabel, Select,
-  MenuItem, Switch, FormControlLabel
+  MenuItem, Switch, FormControlLabel, Divider
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -16,18 +16,21 @@ import {
 import InfiniteScroll from "react-infinite-scroll-component";
 import * as XLSX from 'xlsx';
 import SearchBar from "./SearchBar";
-import SubmitForm from "./SubmitForm";
-import IndividualCard from "./IndividualCard";
+import SubmitForm from "./DetailForm";
+import IndividualCard from "./PersonCard";
 import { search } from "../utils/search";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { fetchMoreUsers } from "../apis/fetchMoreUsers";
 import { fetchInitialUsers } from "../apis/fetchInitialUsers";
-const USERS_PER_PAGE = 4;
+
+import theme from "./Theme"; // Import theme
+const USERS_PER_PAGE = 8;
 const BACKEND_SERVER_BASE_ADDRESS = process.env.REACT_APP_BACKEND_BASEADDRESS;
 
 const UserDashboard = () => {
-  // Existing state
-  const [users, setUsers] = useState([]);
+ 
+
+ const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -37,9 +40,7 @@ const UserDashboard = () => {
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [reload, setReload] = useState(false);
-  
-  // New state for additional features
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [filters, setFilters] = useState({
@@ -47,14 +48,7 @@ const UserDashboard = () => {
     sortBy: "name",
     sortOrder: "asc"
   });
-
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-    },
-  });
-
-  const [formData, setFormData] = useState({
+   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     name: "",
@@ -63,10 +57,10 @@ const UserDashboard = () => {
     company: {
       name: "",
     },
-  });
-
-  // Export to Excel functionality
-  const exportToExcel = () => {
+   });
+  
+ 
+   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(users.map(user => ({
       Name: user.name,
       Email: user.email,
@@ -76,58 +70,71 @@ const UserDashboard = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
     XLSX.writeFile(workbook, "users.xlsx");
   };
+const importFromExcel = (event) => {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const workbook = XLSX.read(e.target.result, { type: 'binary' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(worksheet);
 
-  // Import from Excel functionality
-  const importFromExcel = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const workbook = XLSX.read(e.target.result, { type: 'binary' });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(worksheet);
-      
-      try {
-        setIsLoading(true);
-        for (const row of data) {
-          const userData = {
-            firstName: row.Name.split(' ')[0],
-            lastName: row.Name.split(' ')[1] || '',
-            name: row.Name,
-            email: row.Email,
-            department: row.Department,
-            company: {
-              name: row.Department
-            }
-          };
-          console.log(userData)
-          const response = await fetch(
-            BACKEND_SERVER_BASE_ADDRESS.concat("users"),
-            {
-              method: "POST",
-              body: JSON.stringify(userData),
-              headers: {
-                "Content-type": "application/json",
-              },
-            }
-          );
-          
-          if (!response.ok) {
-            throw new Error(`Failed to import user: ${row.Name}`);
+    try {
+      setIsLoading(true);
+      const importedUsers = []; // Array to store the imported users
+
+      for (const row of data) {
+        const userData = {
+          firstName: row.Name.split(' ')[0],
+          lastName: row.Name.split(' ')[1] || '',
+          name: row.Name,
+          email: row.Email,
+          department: row.Department,
+          company: {
+            name: row.Department
           }
+        };
+        console.log(userData);
+
+        const response = await fetch(
+          BACKEND_SERVER_BASE_ADDRESS.concat("users"),
+          {
+            method: "POST",
+            body: JSON.stringify(userData),
+            headers: {
+              "Content-type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to import user: ${row.Name}`);
         }
-        
-        setError("Users imported successfully");
-        setSeverity("success");
-        handleReload();
-      } catch (err) {
-        setError(err.message);
-        setSeverity("error");
-      } finally {
-        setIsLoading(false);
+
+        // Add the imported user to the array
+        importedUsers.push(userData);
       }
-    };
-    reader.readAsBinaryString(file);
+
+      // Update the users state with the new imported users
+      setUsers((prevUsers) => [
+        ...importedUsers.map((user, index) => ({
+          ...user,
+          id: prevUsers.length + index + 1, // Increment the ID based on the previous users length
+        })),
+        ...prevUsers,
+      ]);
+
+      setError("Users imported successfully");
+      setSeverity("success");
+     
+    } catch (err) {
+      setError(err.message);
+      setSeverity("error");
+    } finally {
+      setIsLoading(false);
+    }
   };
+  reader.readAsBinaryString(file);
+};
 
   // Enhanced delete handling with confirmation
   const handleDeleteConfirmation = (userId) => {
@@ -326,6 +333,9 @@ const UserDashboard = () => {
     setIsEditing(false);
   };
 
+
+
+
   if (isLoading) {
     return (
       <Box
@@ -333,178 +343,202 @@ const UserDashboard = () => {
         justifyContent="center"
         alignItems="center"
         minHeight="100vh"
+        bgcolor={theme.palette?.background.default}
       >
-        <CircularProgress />
+        <CircularProgress color="primary" />
       </Box>
     );
   }
 
-
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme(darkMode)}>
       <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-        <AppBar position="static" elevation={0}>
+        <AppBar position="fixed" elevation={2}>
           <Toolbar>
             <PersonIcon sx={{ mr: 2 }} />
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
               User Management Dashboard
             </Typography>
             
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={darkMode}
-                  onChange={(e) => setDarkMode(e.target.checked)}
-                  color="default"
-                />
-              }
-              label={<DarkModeIcon />}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+             
+
+
+
+                <FormControlLabel
+          control={
+            <Switch
+              checked={darkMode}
+              onChange={(e) => setDarkMode(e.target.checked)}
+              color="default"
             />
+          }
+          label={<DarkModeIcon />}
+        />
 
-            <Tooltip title="Export to Excel">
-              <IconButton color="inherit" onClick={exportToExcel}>
-                <FileDownloadIcon />
-              </IconButton>
-            </Tooltip>
+              <Divider orientation="vertical" flexItem sx={{ mx: 1, bgcolor: 'rgba(255,255,255,0.12)' }} />
 
-            <Tooltip title="Import from Excel">
-              <IconButton color="inherit" component="label">
-                <FileUploadIcon />
-                <input
-                  type="file"
-                  hidden
-                  accept=".xlsx,.xls"
-                  onChange={importFromExcel}
-                />
-              </IconButton>
-            </Tooltip>
+              <Tooltip title="Export to Excel">
+                <IconButton color="inherit" onClick={exportToExcel}>
+                  <FileDownloadIcon />
+                </IconButton>
+              </Tooltip>
 
-            <Tooltip title="Refresh">
-              <IconButton color="inherit" onClick={handleReload}>
-                <RefreshIcon />
-              </IconButton>
-            </Tooltip>
+              <Tooltip title="Import from Excel">
+                <IconButton color="inherit" component="label">
+                  <FileUploadIcon />
+                  <input
+                    type="file"
+                    hidden
+                    accept=".xlsx,.xls"
+                    onChange={importFromExcel}
+                  />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Refresh">
+                <IconButton color="inherit" onClick={handleReload}>
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Toolbar>
         </AppBar>
 
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Paper elevation={0} sx={{ p: 2, mb: 4, borderRadius: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-              </Grid>
-              <Grid item xs={12} md={8}>
+        <Container maxWidth="xl" sx={{ pt: 10, pb: 4 }}>
+          <Grid container spacing={3}>
+            {/* Left Sidebar */}
+            <Grid item xs={12} md={3}>
+              <Paper elevation={0} sx={{ p: 3, borderRadius: 3, height: '100%' }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                  Add/Edit User
+                </Typography>
+                <SubmitForm
+                  isEditing={isEditing}
+                  handleSubmit={handleSubmit}
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  resetForm={resetForm}
+                />
+              </Paper>
+            </Grid>
+
+            {/* Main Content */}
+            <Grid item xs={12} md={9}>
+              <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={4}>
-                    <FormControl fullWidth>
-                      <InputLabel>Department</InputLabel>
-                      <Select
-                        value={filters.department}
-                        label="Department"
-                        onChange={(e) => setFilters({ ...filters, department: e.target.value })}
-                      >
-                        <MenuItem value="">All</MenuItem>
-                        {[...new Set(users.map(user => user.company.name))].map(dept => (
-                          <MenuItem key={dept} value={dept}>{dept}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                   </Grid>
-                  <Grid item xs={12} md={4}>
-                    <FormControl fullWidth>
-                      <InputLabel>Sort By</InputLabel>
-                      <Select
-                        value={filters.sortBy}
-                        label="Sort By"
-                        onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-                      >
-                        <MenuItem value="name">Name</MenuItem>
-                        <MenuItem value="email">Email</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <FormControl fullWidth>
-                      <InputLabel>Order</InputLabel>
-                      <Select
-                        value={filters.sortOrder}
-                        label="Order"
-                        onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
-                      >
-                        <MenuItem value="asc">Ascending</MenuItem>
-                        <MenuItem value="desc">Descending</MenuItem>
-                      </Select>
-                    </FormControl>
+                  <Grid item xs={12} md={8}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={4}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Department</InputLabel>
+                          <Select
+                            value={filters.department}
+                            label="Department"
+                            onChange={(e) => setFilters({ ...filters, department: e.target.value })}
+                          >
+                            <MenuItem value="">All</MenuItem>
+                            {[...new Set(users.map(user => user.company.name))].map(dept => (
+                              <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Sort By</InputLabel>
+                          <Select
+                            value={filters.sortBy}
+                            label="Sort By"
+                            onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+                          >
+                            <MenuItem value="name">Name</MenuItem>
+                            <MenuItem value="email">Email</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Order</InputLabel>
+                          <Select
+                            value={filters.sortOrder}
+                            label="Order"
+                            onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
+                          >
+                            <MenuItem value="asc">Ascending</MenuItem>
+                            <MenuItem value="desc">Descending</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Grid>
-              </Grid>
+              </Paper>
+
+              {error && (
+                <Alert
+                  severity={severity}
+                  sx={{ mb: 3, borderRadius: 3 }}
+                  onClose={() => setError(null)}
+                >
+                  {error}
+                </Alert>
+              )}
+
+              <InfiniteScroll
+                dataLength={users.length}
+                key={reload}
+                next={() => fetchMoreUsers(page, setUsers, setPage, setHasMore, setError, USERS_PER_PAGE)}
+                hasMore={hasMore}
+                loader={
+                  hasMore && (
+                    <Box display="flex" justifyContent="center" p={2}>
+                      <CircularProgress color="primary" />
+                    </Box>
+                  )
+                }
+              >
+                <Grid container spacing={3}>
+                  {applyFilters(search(searchTerm, users)).map((user) => (
+                    <Grid item xs={12} md={6} key={user.id}>
+                      <Card
+                        elevation={0}
+                        sx={{
+                          borderRadius: 3,
+                          bgcolor: "background.paper",
+                          border: "1px solid",
+                          borderColor: "divider",
+                          '&:hover': {
+                            borderColor: 'primary.main',
+                          },
+                        }}
+                      >
+                        <IndividualCard
+                          user={user}
+                          handleSelectedUser={handleSelectedUser}
+                          setFormData={setFormData}
+                          setIsEditing={setIsEditing}
+                          handleDelete={() => handleDeleteConfirmation(user.id)}
+                          resetForm={resetForm}
+                        />
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </InfiniteScroll>
             </Grid>
-          </Paper>
-
-          <SubmitForm
-            isEditing={isEditing}
-            handleSubmit={handleSubmit}
-            formData={formData}
-            handleInputChange={handleInputChange}
-            resetForm={resetForm}
-          />
-
-          {error && (
-            <Alert
-              severity={severity}
-              sx={{ mb: 4, borderRadius: 2 }}
-              onClose={() => setError(null)}
-            >
-              {error}
-            </Alert>
-          )}
-
-          <InfiniteScroll
-            dataLength={users.length}
-            key={reload}
-            next={() => fetchMoreUsers(page, setUsers, setPage, setHasMore, setError, USERS_PER_PAGE)}
-            hasMore={hasMore}
-            loader={
-              hasMore && (
-                <Box display="flex" justifyContent="center" p={2}>
-                  <CircularProgress />
-                </Box>
-              )
-            }
-          >
-            <div className="userlist-wrapper">
-              <Grid container spacing={3}>
-                {applyFilters(search(searchTerm, users)).map((user) => (
-                  <Grid item xs={12} md={6} key={user.id}>
-                    <Card
-                      elevation={0}
-                      sx={{
-                        borderRadius: 2,
-                        bgcolor: "background.paper",
-                        border: "1px solid",
-                        borderColor: "divider",
-                      }}
-                    >
-                      <IndividualCard
-                        user={user}
-                        handleSelectedUser={handleSelectedUser}
-                        setFormData={setFormData}
-                        setIsEditing={setIsEditing}
-                        handleDelete={() => handleDeleteConfirmation(user.id)}
-                        resetForm={resetForm}
-                      />
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </div>
-          </InfiniteScroll>
+          </Grid>
         </Container>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
+          PaperProps={{
+            sx: { borderRadius: 3 }
+          }}
         >
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
@@ -512,9 +546,21 @@ const UserDashboard = () => {
               Are you sure you want to delete this user? This action cannot be undone.
             </DialogContentText>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleDeleteConfirmed} color="error" autoFocus>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button 
+              onClick={() => setDeleteDialogOpen(false)}
+              variant="outlined"
+              sx={{ borderRadius: 2 }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDeleteConfirmed}
+              color="error"
+              variant="contained"
+              sx={{ borderRadius: 2 }}
+              autoFocus
+            >
               Delete
             </Button>
           </DialogActions>
