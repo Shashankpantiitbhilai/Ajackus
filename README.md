@@ -22,7 +22,7 @@ Experience the application live at [https://ajackus-seven.vercel.app/](https://a
   - Dark mode
   - Light mode
 - **Advance Search Filter**
-  - Filter Users by Department,name,email,order(ascending or descending)
+  - Filter Users by Department,name,email,order(ascending or descending).
   - filter users by search
 - **User Statistics**
  
