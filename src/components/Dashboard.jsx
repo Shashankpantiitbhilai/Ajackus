@@ -398,11 +398,6 @@ const importFromExcel = (event) => {
                 </IconButton>
               </Tooltip>
 
-              <Tooltip title="Refresh">
-                <IconButton color="inherit" onClick={handleReload}>
-                  <RefreshIcon />
-                </IconButton>
-              </Tooltip>
             </Box>
           </Toolbar>
         </AppBar>

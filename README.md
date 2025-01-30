@@ -63,10 +63,7 @@ npm start
 ```
 Visit `http://localhost:3000` in your browser
 
-#### Method 2: Using Docker
-```bash
-docker compose up --build --remove-orphans
-```
+
 
 ## 📁 Project Structure
 ```

@@ -1,17 +1,69 @@
 import React from "react";
-import "../style/Dashboard.css";
 import { 
   Paper, 
   Typography, 
   TextField, 
   Button, 
-  Grid, 
-  Box
+  Box,
+  Divider,
+  styled
 } from "@mui/material";
 import { 
-  Edit as EditIcon, 
-  Add as AddIcon 
-} from "@mui/icons-material";
+  UserPlus, 
+  UserCog, 
+  X as CloseIcon, 
+  Send as SendIcon 
+} from "lucide-react";
+
+// Styled components
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius * 2,
+  backgroundColor: theme.palette.background.paper,
+  boxShadow: theme.shadows[3],
+}));
+
+const FormHeader = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  marginBottom: theme.spacing(4),
+  '& svg': {
+    marginRight: theme.spacing(2),
+    color: theme.palette.primary.main,
+    strokeWidth: 1.5
+  }
+}));
+
+const FormContainer = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, 1fr)',
+  gap: theme.spacing(3),
+  [theme.breakpoints.down('sm')]: {
+    gridTemplateColumns: '1fr',
+  }
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.default,
+    '&:hover fieldset': {
+      borderColor: theme.palette.primary.main,
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: theme.palette.text.secondary,
+  }
+}));
+
+const ButtonContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: theme.spacing(2),
+  marginTop: theme.spacing(4),
+  paddingTop: theme.spacing(3),
+  borderTop: `1px solid ${theme.palette.divider}`,
+}));
 
 const SubmitForm = ({
   isEditing,
@@ -21,188 +73,110 @@ const SubmitForm = ({
   resetForm
 }) => {
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        mb: 4,
-        borderRadius: 2,
-        bgcolor: 'background.paper', // Using theme background
-      }}
-    >
-      <Box 
-        display="flex" 
-        alignItems="center" 
-        mb={3}
-        sx={{
-          '& .MuiSvgIcon-root': {
-            color: 'primary.main'
-          }
-        }}
-      >
-        {isEditing ? <EditIcon sx={{ mr: 1 }} /> : <AddIcon sx={{ mr: 1 }} />}
+    <StyledPaper elevation={0}>
+      <FormHeader>
+        {isEditing ? (
+          <UserCog size={28} />
+        ) : (
+          <UserPlus size={28} />
+        )}
         <Typography 
-          variant="h5"
+          variant="h5" 
           sx={{ 
-            color: 'text.primary',
-            fontWeight: 500
+            fontWeight: 600,
+            color: 'text.primary'
           }}
         >
-          {isEditing ? "Edit User" : "Add New User"}
+          {isEditing ? "Edit User Profile" : "Add New Team Member"}
         </Typography>
-      </Box>
+      </FormHeader>
 
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              name="firstName"
-              label="First Name"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              required
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.4)',
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'text.secondary',
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'text.primary',
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              name="lastName"
-              label="Last Name"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              required
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.4)',
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'text.secondary',
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'text.primary',
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              name="email"
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.4)',
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'text.secondary',
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'text.primary',
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              name="department"
-              label="Department"
-              value={formData.department}
-              onChange={handleInputChange}
-              required
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.23)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.4)',
-                  },
-                },
-                '& .MuiInputLabel-root': {
-                  color: 'text.secondary',
-                },
-                '& .MuiOutlinedInput-input': {
-                  color: 'text.primary',
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Box 
-              display="flex" 
-              justifyContent="flex-end" 
-              gap={2}
-            >
-              <Button 
-                variant="outlined" 
-                onClick={resetForm} 
-                sx={{ 
-                  px: 4,
-                  color: 'text.primary',
-                  borderColor: 'rgba(255, 255, 255, 0.23)',
-                  '&:hover': {
-                    borderColor: 'rgba(255, 255, 255, 0.4)',
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                type="submit"
-                startIcon={isEditing ? <EditIcon /> : <AddIcon />}
-                sx={{ 
-                  px: 4,
-                  bgcolor: 'primary.main',
-                  color: 'common.white',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  }
-                }}
-              >
-                {isEditing ? "Update User" : "Add User"}
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
+        <FormContainer>
+          <StyledTextField
+            fullWidth
+            name="firstName"
+            label="First Name"
+            value={formData.firstName}
+            onChange={handleInputChange}
+            required
+            placeholder="Enter first name"
+            variant="outlined"
+          />
+
+          <StyledTextField
+            fullWidth
+            name="lastName"
+            label="Last Name"
+            value={formData.lastName}
+            onChange={handleInputChange}
+            required
+            placeholder="Enter last name"
+            variant="outlined"
+          />
+
+          <StyledTextField
+            fullWidth
+            name="email"
+            label="Email Address"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            placeholder="email@company.com"
+            variant="outlined"
+          />
+
+          <StyledTextField
+            fullWidth
+            name="department"
+            label="Department"
+            value={formData.department}
+            onChange={handleInputChange}
+            required
+            placeholder="Enter department"
+            variant="outlined"
+          />
+        </FormContainer>
+
+        <ButtonContainer>
+          <Button
+            variant="outlined"
+            onClick={resetForm}
+            startIcon={<CloseIcon size={18} />}
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              textTransform: 'none',
+              borderColor: 'divider',
+              '&:hover': {
+                borderColor: 'primary.main',
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            type="submit"
+            startIcon={<SendIcon size={18} />}
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              textTransform: 'none',
+              boxShadow: 2,
+              '&:hover': {
+                boxShadow: 3,
+              }
+            }}
+          >
+            {isEditing ? "Update User" : "Add User"}
+          </Button>
+        </ButtonContainer>
       </form>
-    </Paper>
+    </StyledPaper>
   );
 };
 
