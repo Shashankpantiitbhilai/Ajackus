@@ -31,7 +31,7 @@ Experience the application live at [https://ajackus-seven.vercel.app/](https://a
 - **Advanced UI Features**
   - Infinite scrolling
   - Responsive design
-  - Interactive user cards
+  - Interactive user detail tables
 
 ## 🚀 Getting Started
 
