@@ -21,7 +21,11 @@ Experience the application live at [https://ajackus-seven.vercel.app/](https://a
 - **Theme Support**
   - Dark mode
   - Light mode
+- **Advance Search Filter**
+  - Filter Users by Department,name,email,order(ascending or descending)
+  - filter users by search
 - **User Statistics**
+ 
   - Total users count
   - Department-wise distribution
 - **Advanced UI Features**
