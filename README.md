@@ -3,7 +3,7 @@
 
 Experience the application live at [https://ajackus-seven.vercel.app/](https://ajackus-seven.vercel.app/)
 ## A modern, feature-rich user management dashboard built with React that allows viewing, adding, editing, and deleting user details with a mock backend API.
-
+![Demo](./assets/demo.gif)
 ![Demo](./assets/image.png)
 
 ## 🌟 Features
