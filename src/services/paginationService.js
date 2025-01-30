@@ -15,7 +15,7 @@
 
 const BACKEND_SERVER_BASE_URL = process.env.REACT_APP_BACKEND_BASEURL;
 
-export const fetchMoreUsers = async (
+export const pagination = async (
   page,
   setUsers,
   setPage,

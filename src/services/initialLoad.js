@@ -14,7 +14,7 @@
 const BACKEND_SERVER_BASE_URL = process.env.REACT_APP_BACKEND_BASEURL;
 
 
-export const fetchInitialUsers = async (
+export const getUsers = async (
   setUsers,
   setHasMore,
   setError,

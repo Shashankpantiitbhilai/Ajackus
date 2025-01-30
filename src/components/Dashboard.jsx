@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import {
-  Container, Paper, Typography, Grid, Card, Alert, Box, 
+  Container, Paper, Typography, Grid, Alert, Box, 
   CircularProgress, IconButton, AppBar, Toolbar, Tooltip,
- FormControl, InputLabel, Select,
-  MenuItem, Switch, FormControlLabel, Divider
+  FormControl, InputLabel, Select, MenuItem, Switch,
+  FormControlLabel, Divider, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow
 } from "@mui/material";
 import {
-  Person as PersonIcon,
-  Refresh as RefreshIcon,
-  FileDownload as FileDownloadIcon,
-  FileUpload as FileUploadIcon,
-  
-  DarkMode as DarkModeIcon,
-   Group as GroupIcon
-} from "@mui/icons-material";
+  Edit,
+  Trash2,
+  RefreshCw,
+  Download,
+  Upload,
+  Moon,
+  Users,
+  Mail,
+  Building
+} from "lucide-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import * as XLSX from 'xlsx';
 import SearchBar from "./SearchBar";
@@ -21,15 +24,15 @@ import SubmitForm from "./DetailForm";
 import IndividualCard from "./PersonCard";
 import { search } from "../utils/SearchHandler";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { fetchMoreUsers } from "../services/paginationService";
-import { fetchInitialUsers } from "../services/initialLoad";
+import { pagination } from "../services/paginationService";
+import { getUsers } from "../services/initialLoad";
 import DeleteDialog from "./DeleteDialog";
 import theme from "./Theme"; // Import theme
-const USERS_PER_PAGE = 8;
+const INITIAL_USERS = 8;
 const BACKEND_SERVER_BASE_URL = process.env.REACT_APP_BACKEND_BASEURL;
-console.log("url",BACKEND_SERVER_BASE_URL)
+
 const UserDashboard = () => {
- 
+  const tableContainerRef = useRef(null);
 
  const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
@@ -62,6 +65,7 @@ const UserDashboard = () => {
    });
   
  
+  const [rowsPerPage, setRowsPerPage] = useState(10);
    const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(users.map(user => ({
       Name: user.name,
@@ -175,34 +179,13 @@ const importFromExcel = (event) => {
 
 
 
-
-  const handleSelectedUser = (user) => {
-    const firstName = user.name.split(" ")[0];
-    const lastName = user.name.split(" ")[1];
-    const department = user.company.name;
-    user.firstName = firstName;
-    user.lastName = lastName;
-    user.department = department;
-    const formData = {
-      firstName: firstName,
-      lastName: lastName,
-      email: user.email,
-      department: department,
-      company: {
-        name: department,
-      },
-    };
-    setFormData(formData);
-    setSelectedUser(user);
-  };
-
   useEffect(() => {
-    fetchInitialUsers(
+    getUsers(
       setUsers,
       setHasMore,
       setError,
       setIsLoading,
-      USERS_PER_PAGE,
+      INITIAL_USERS,
       setSeverity
     );
   }, []);
@@ -309,12 +292,12 @@ const importFromExcel = (event) => {
     setPage(1);
     setHasMore(true);
     setUsers([]); // Reset the users array before fetching initial users
-    fetchInitialUsers(
+    getUsers(
       setUsers,
       setHasMore,
       setError,
       setIsLoading,
-      USERS_PER_PAGE,
+      INITIAL_USERS,
       setSeverity
     );
   };
@@ -351,212 +334,297 @@ const importFromExcel = (event) => {
       </Box>
     );
   }
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSelectedUser = (user) => {
+    const firstName = user.name.split(" ")[0];
+    const lastName = user.name.split(" ")[1];
+    const department = user.company.name;
+    const formData = {
+      firstName,
+      lastName,
+      email: user.email,
+      department,
+      company: {
+        name: department,
+      },
+    };
+    setFormData(formData);
+    setSelectedUser(user);
+    setIsEditing(true);
+  };
+
+  // Modified to work with table pagination
+
+
+  // Modified getFilteredUsers to work with infinite scroll
+  const getFilteredUsers = () => {
+    let filteredUsers = [...users];
+    
+    if (searchTerm) {
+      filteredUsers = filteredUsers.filter(user => 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filters.department) {
+      filteredUsers = filteredUsers.filter(user => 
+        user.company.name.toLowerCase() === filters.department.toLowerCase()
+      );
+    }
+
+    filteredUsers.sort((a, b) => {
+      const aValue = filters.sortBy === 'name' ? a.name : a.email;
+      const bValue = filters.sortBy === 'name' ? b.name : b.email;
+      return filters.sortOrder === 'asc' 
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    });
+
+    return filteredUsers;
+  };
   return (
-    <ThemeProvider theme={theme(darkMode)}>
-      <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-        <AppBar position="fixed" elevation={2}>
-          <Toolbar>
-            <PersonIcon sx={{ mr: 2 }} />
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-              User Management Dashboard
-            </Typography>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-             
-
-
-
-                <FormControlLabel
-          control={
-            <Switch
-              checked={darkMode}
-              onChange={(e) => setDarkMode(e.target.checked)}
-              color="default"
-            />
-          }
-          label={<DarkModeIcon />}
-        />
-
-              <Divider orientation="vertical" flexItem sx={{ mx: 1, bgcolor: 'rgba(255,255,255,0.12)' }} />
-
-              <Tooltip title="Export to Excel">
-                <IconButton color="inherit" onClick={exportToExcel}>
-                  <FileDownloadIcon />
-                </IconButton>
-              </Tooltip>
-
-              <Tooltip title="Import from Excel">
-                <IconButton color="inherit" component="label">
-                  <FileUploadIcon />
-                  <input
-                    type="file"
-                    hidden
-                    accept=".xlsx,.xls"
-                    onChange={importFromExcel}
-                  />
-                </IconButton>
-              </Tooltip>
-
-            </Box>
-          </Toolbar>
-        </AppBar>
-
-        <Container maxWidth="xl" sx={{ pt: 10, pb: 4 }}>
-          <Grid container spacing={3}>
-            {/* Left Sidebar */}
-            <Grid item xs={12} md={3}>
-              <Paper elevation={0} sx={{ p: 3, borderRadius: 3, height: '100%' }}>
-                 <Box 
-                  sx={{ 
-                    mb: 3, 
-                    p: 2, 
-                    borderRadius: 2, 
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}
-                >
-                  <GroupIcon />
-                  <Box>
-                    <Typography variant="subtitle2">Total Users</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                      {users.length}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                  Add/Edit User
-                </Typography>
-                <SubmitForm
-                  isEditing={isEditing}
-                  handleSubmit={handleSubmit}
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  resetForm={resetForm}
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
+      <AppBar position="fixed" elevation={2}>
+        <Toolbar>
+          <Users className="mr-2" />
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+            User Management Dashboard
+          </Typography>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={darkMode}
+                  onChange={(e) => setDarkMode(e.target.checked)}
+                  color="default"
                 />
-              </Paper>
-            </Grid>
+              }
+              label={<Moon />}
+            />
+            
+            <Divider orientation="vertical" flexItem />
+            
+            <Tooltip title="Export to Excel">
+              <IconButton color="inherit" onClick={exportToExcel}>
+                <Download />
+              </IconButton>
+            </Tooltip>
 
-            {/* Main Content */}
-            <Grid item xs={12} md={9}>
-              <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
-                    <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                  </Grid>
-                  <Grid item xs={12} md={8}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Department</InputLabel>
-                          <Select
-                            value={filters.department}
-                            label="Department"
-                            onChange={(e) => setFilters({ ...filters, department: e.target.value })}
-                          >
-                            <MenuItem value="">All</MenuItem>
-                            {[...new Set(users.map(user => user.company.name))].map(dept => (
-                              <MenuItem key={dept} value={dept}>{dept}</MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} md={4}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Sort By</InputLabel>
-                          <Select
-                            value={filters.sortBy}
-                            label="Sort By"
-                            onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-                          >
-                            <MenuItem value="name">Name</MenuItem>
-                            <MenuItem value="email">Email</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} md={4}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Order</InputLabel>
-                          <Select
-                            value={filters.sortOrder}
-                            label="Order"
-                            onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
-                          >
-                            <MenuItem value="asc">Ascending</MenuItem>
-                            <MenuItem value="desc">Descending</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
+            <Tooltip title="Import from Excel">
+              <IconButton color="inherit" component="label">
+                <Upload />
+                <input
+                  type="file"
+                  hidden
+                  accept=".xlsx,.xls"
+                  onChange={importFromExcel}
+                />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      <Container maxWidth="xl" sx={{ pt: 10, pb: 4 }}>
+        <Grid container spacing={3}>
+          {/* Left Sidebar */}
+          <Grid item xs={12} md={3}>
+            <Paper elevation={0} sx={{ p: 3, borderRadius: 2 }}>
+              <Box 
+                sx={{ 
+                  mb: 3, 
+                  p: 2, 
+                  borderRadius: 2, 
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2
+                }}
+              >
+                <Users size={24} />
+                <Box>
+                  <Typography variant="subtitle2">Total Users</Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                    {users.length}
+                  </Typography>
+                </Box>
+              </Box>
+              
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                {isEditing ? 'Edit User' : 'Add User'}
+              </Typography>
+              
+              <SubmitForm
+                isEditing={isEditing}
+                handleSubmit={handleSubmit}
+                formData={formData}
+                handleInputChange={handleInputChange}
+                resetForm={resetForm}
+              />
+            </Paper>
+          </Grid>
+
+          {/* Main Content */}
+          <Grid item xs={12} md={9}>
+            <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid item xs={12} md={4}>
+                  <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                </Grid>
+                <Grid item xs={12} md={8}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Department</InputLabel>
+                        <Select
+                          value={filters.department}
+                          label="Department"
+                          onChange={(e) => setFilters({ ...filters, department: e.target.value })}
+                        >
+                          <MenuItem value="">All</MenuItem>
+                          {[...new Set(users.map(user => user.company.name))].map(dept => (
+                            <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Sort By</InputLabel>
+                        <Select
+                          value={filters.sortBy}
+                          label="Sort By"
+                          onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+                        >
+                          <MenuItem value="name">Name</MenuItem>
+                          <MenuItem value="email">Email</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Order</InputLabel>
+                        <Select
+                          value={filters.sortOrder}
+                          label="Order"
+                          onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
+                        >
+                          <MenuItem value="asc">Ascending</MenuItem>
+                          <MenuItem value="desc">Descending</MenuItem>
+                        </Select>
+                      </FormControl>
                     </Grid>
                   </Grid>
                 </Grid>
-              </Paper>
+              </Grid>
 
-              {error && (
-                <Alert
-                  severity={severity}
-                  sx={{ mb: 3, borderRadius: 3 }}
-                  onClose={() => setError(null)}
-                >
+            {error && (
+                <Alert severity={severity} sx={{ mb: 3 }} onClose={() => setError(null)}>
                   {error}
                 </Alert>
               )}
 
-              <InfiniteScroll
-                dataLength={users.length}
-                key={reload}
-                next={() => fetchMoreUsers(page, setUsers, setPage, setHasMore, setError, USERS_PER_PAGE)}
-                hasMore={hasMore}
-                loader={
-                  hasMore && (
+              <div
+                id="scrollableDiv"
+                style={{
+                  overflow: 'auto',
+                  maxHeight: '600px'
+                }}
+                ref={tableContainerRef}
+              >
+                <InfiniteScroll
+                  dataLength={users.length}
+                  next={() => pagination(page, setUsers, setPage, setHasMore, setError, INITIAL_USERS)}
+                  hasMore={hasMore}
+                  loader={
                     <Box display="flex" justifyContent="center" p={2}>
                       <CircularProgress color="primary" />
                     </Box>
-                  )
-                }
-              >
-                <Grid container spacing={3}>
-                  {applyFilters(search(searchTerm, users)).map((user) => (
-                    <Grid item xs={12} md={6} key={user.id}>
-                      <Card
-                        elevation={0}
-                        sx={{
-                          borderRadius: 3,
-                          bgcolor: "background.paper",
-                          border: "1px solid",
-                          borderColor: "divider",
-                          '&:hover': {
-                            borderColor: 'primary.main',
-                          },
-                        }}
-                      >
-                        <IndividualCard
-                          user={user}
-                          handleSelectedUser={handleSelectedUser}
-                          setFormData={setFormData}
-                          setIsEditing={setIsEditing}
-                          handleDelete={() => handleDeleteConfirmation(user.id)}
-                          resetForm={resetForm}
-                        />
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </InfiniteScroll>
-            </Grid>
+                  }
+                  scrollableTarget="scrollableDiv"
+                >
+                  <TableContainer>
+                    <Table stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Email</TableCell>
+                          <TableCell>Department</TableCell>
+                          <TableCell align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {getFilteredUsers().map((user) => (
+                          <TableRow
+                            key={user.id}
+                            sx={{
+                              '&:last-child td, &:last-child th': { border: 0 },
+                              '&:hover': { bgcolor: 'action.hover' }
+                            }}
+                          >
+                            <TableCell component="th" scope="row">
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Users size={20} />
+                                {user.name}
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Mail size={20} />
+                                {user.email}
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Building size={20} />
+                                {user.company.name}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton
+                                onClick={() => handleSelectedUser(user)}
+                                color="primary"
+                                size="small"
+                              >
+                                <Edit size={18} />
+                              </IconButton>
+                              <IconButton
+                                onClick={() => handleDeleteConfirmation(user.id)}
+                                color="error"
+                                size="small"
+                              >
+                                <Trash2 size={18} />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </InfiniteScroll>
+              </div>
+            </Paper>
           </Grid>
-        </Container>
+        </Grid>
+      </Container>
 
-         <DeleteDialog
+      <DeleteDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         handleDeleteConfirmed={handleDeleteConfirmed}
       />
-      </Box>
-    </ThemeProvider>
+    </Box>
   );
 };
 
