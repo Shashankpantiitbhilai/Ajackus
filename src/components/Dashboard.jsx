@@ -392,6 +392,7 @@ const importFromExcel = (event) => {
     return filteredUsers;
   };
   return (
+       <ThemeProvider theme={theme(darkMode)}>
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       <AppBar position="fixed" elevation={2}>
         <Toolbar>
@@ -624,7 +625,8 @@ const importFromExcel = (event) => {
         onClose={() => setDeleteDialogOpen(false)}
         handleDeleteConfirmed={handleDeleteConfirmed}
       />
-    </Box>
+      </Box>
+      </ThemeProvider>
   );
 };
 
