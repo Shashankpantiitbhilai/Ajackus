@@ -40,7 +40,7 @@ Experience the application live at [https://ajackus-seven.vercel.app/](https://a
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/user-management-dashboard.git
+git clone https://github.com/Shashankpantiitbhilai/Ajackus
 cd user-management-dashboard
 ```
 
